@@ -5,13 +5,72 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet build",
+            "command": "dotnet build /property:GenerateFullPaths=true",
             "type": "shell",
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "presentation": {
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "add package dependency",
+            "command": "dotnet add ${input:project} package ${input:dependency}",
+            "type": "shell",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "add project reference dependency",
+            "command": "dotnet add ${input:project} /property:GenerateFullPaths=true reference ${input:dependency}",
+            "type": "shell",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "add project to sln",
+            "command": "dotnet sln Itofinity-Credential-Manager.sln add ${input:project}",
+            "type": "shell",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "pack",
+            "command": "dotnet pack /property:GenerateFullPaths=true",
+            "type": "shell",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet publish -r ${input:runtime} -f ${input:framework} /property:GenerateFullPaths=true",
+            "type": "shell",
+            "problemMatcher": "$msCompile"
         }
+    ],
+    "inputs": [
+        {
+            "id": "runtime",
+            "description": "target runtime",
+            "default": "osx-x64",
+            "type": "promptString"
+        },
+        {
+            "id": "framework",
+            "description": "target framework",
+            "default": "netcoreapp2.1",
+            "type": "promptString"
+        },
+        {
+            "id": "dependency",
+            "description": "add the following dependency",
+            "default": "unknown",
+            "type": "promptString"
+        },
+        {
+            "id": "project",
+            "description": "target project",
+            "default": "unknown",
+            "type": "promptString"
+        },
     ]
 }
