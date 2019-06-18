@@ -19,6 +19,10 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.8.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Itofinity-Cli-Utils\src\Itofinity.Cli.Utils\Itofinity.Cli.Utils.csproj" />
+    <ProjectReference Include="..\..\..\..\..\mminns\Itofinity-Cli-Utils\src\Itofinity.Cli.Utils\Itofinity.Cli.Utils.csproj" />
+    <ProjectReference Include="..\..\Spi\Spi.csproj" />
+    <ProjectReference Include="..\..\Api\Security\Common\Security.Common.csproj" />
+    <ProjectReference Include="..\..\Api\Security\MacOS.Keychain\MacOS.Keychain.csproj" />
+    <ProjectReference Include="..\..\Extensions\Hosts\Generic\Host.Generic.csproj" />
   </ItemGroup>
 </Project>

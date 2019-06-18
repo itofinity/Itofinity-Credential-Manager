@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Spi\Spi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NewtonSoft.json" Version="12.0.2" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>

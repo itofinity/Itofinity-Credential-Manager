@@ -6,16 +6,24 @@ using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using Itofinity.Refit.Cli.Utils.Options.Global;
 
 namespace Manager.Commands
 {
     public abstract class AbstractCommandDefinition : ICommandDefinition
     {
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<AbstractCommandDefinition>();
 //        [Import]
 //        public IClientFactory<ApiClient> ClientFactory { get; private set; }
 
+        private static IEnumerable<IOptionDefinition> _globalOptionDefinitions = new List<IOptionDefinition>()
+        {
+            new Verbosity(),
+            new LogFilePath(),
+        };
         public static string _namespaceRoot = typeof(AbstractCommandDefinition).Namespace;
         public abstract string Name { get; }
 
@@ -26,6 +34,11 @@ namespace Manager.Commands
         protected void SetHelpOption(CommandLineApplication command)
         {
             command.HelpOption("-?|-h|--help");
+        }
+
+        protected void SetGlobalOptions(CommandLineApplication command)
+        {
+            _globalOptionDefinitions.ToList().ForEach(o => command.Option(o.Template, o.Description, o.OptionType));
         }
 
 //        protected void SetApiTokenOption(CommandLineApplication command)
@@ -56,13 +69,12 @@ namespace Manager.Commands
         public static int RunRequest(CommandLineApplication command, CommandOption logLocationOption, CommandOption logVerbosityOption, CommandOption porcelainOption, CommandOption rawOption,
             Func<object> request)
         {
-            ConfigureLogging(logLocationOption, logVerbosityOption);
 
             try
             {
                 var results = request.Invoke();
 
-                if (results is IList)
+                /* if (results is IList)
                 {
                     OutputResults(porcelainOption.HasValue(), rawOption.HasValue(), results as IList);
                 }
@@ -73,20 +85,21 @@ namespace Manager.Commands
                 else
                 {
                     OutputResult(results);
-                }
+                }*/
+                OutputResult(results as string);
 
-                Console.WriteLine();
-                Console.WriteLine($"{command.Name} has finished.");
+                Logger.LogDebug($"{command.Name} has finished.");
             }
             catch (Exception ex)
             {
+                Logger.LogError("oops!", ex);
                 Console.WriteLine(ex.Message);
             }
 
             return 0;
         }
 
-        private static void ConfigureLogging(CommandOption logLocationOption, CommandOption logVerbosityOption)
+        protected static void ConfigureLogging(CommandOption logLocationOption, CommandOption logVerbosityOption)
         {
             var logLevel = NLog.LogLevel.Off;
             if (logVerbosityOption.HasValue())
@@ -106,7 +119,7 @@ namespace Manager.Commands
             }
         }
 
-        private static void OutputResults(bool porcelain, bool raw, IList results)
+        /* private static void OutputResults(bool porcelain, bool raw, IList results)
         {
             if (!porcelain)
                 Console.WriteLine();
@@ -135,6 +148,11 @@ namespace Manager.Commands
         {
             var line = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.None);
             Console.WriteLine($"{line}");
+        }*/
+
+        private static void OutputResult(string result)
+        {
+            Console.WriteLine(result);
         }
 
         public abstract Action<CommandLineApplication> GetConfiguration(CommandLineApplication app);
@@ -144,6 +162,21 @@ namespace Manager.Commands
             var context = type.Namespace.Replace(_namespaceRoot + ".", string.Empty).Replace(".", "-").ToLower();
             var command = type.Name.ToLower();
             return $"{context}-{command}";// type.AssemblyQualifiedName.Replace("Itofinity.Appveyor.Cli.Commands.", string.Empty).Replace(".", "-").ToLower();
+        }
+
+        protected static Dictionary<string, List<string>> GetEnvironmentVariableOptions()
+        {
+            var options = new Dictionary<string, List<string>>();
+
+            var rawEnvVars = System.Environment.GetEnvironmentVariables();
+            var envvars = rawEnvVars.Keys.Cast<object>().ToDictionary(k=> k.ToString(), v=> rawEnvVars[v]);
+
+            if(!envvars.Any(ev => ev.Key.StartsWith("icm", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return options;
+            };
+
+            return options;
         }
     }
 }
