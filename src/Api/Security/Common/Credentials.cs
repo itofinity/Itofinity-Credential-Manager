@@ -13,7 +13,7 @@ namespace Security.Common
 
         }
 
-        public Credentials(Spi.Input.Options options) : this(options.ValueOrDefault("user"), options.ValueOrDefault("protocol"), options.ValueOrDefault("host"), options.ValueOrDefault("path"), null)
+        public Credentials(Spi.Input.Options options) : this(options.ValueOrDefault("user"), options.ValueOrDefault("protocol"), options.ValueOrDefault("host"), options.ValueOrDefault("path"), options.ValueOrDefault("password"))
         {
         }
         
@@ -36,10 +36,24 @@ namespace Security.Common
 
         public string GetResponse()
         {
-            // TODO maybe this should not be OS specific newline?
-            return $"user={User}{Environment.NewLine}protocol={Protocol}{Environment.NewLine}host={Host}{Environment.NewLine}path={Path}{Environment.NewLine}secret={Secret}";
+            var buffer = new System.Text.StringBuilder();
+            buffer.Append(GetResponseForProperty(nameof(User).ToLower(), User));
+            buffer.Append(GetResponseForProperty(nameof(Protocol).ToLower(), Protocol));
+            buffer.Append(GetResponseForProperty(nameof(Host).ToLower(), Host));
+            buffer.Append(GetResponseForProperty(nameof(Path).ToLower(), Path));
+            buffer.Append(GetResponseForProperty("password", Secret));
+            return buffer.ToString();
         }
 
+        private string GetResponseForProperty(string propertyName, string propertyValue)
+        {
+            if (!string.IsNullOrWhiteSpace(propertyValue))
+            {
+                return $"{propertyName}={propertyValue}{Environment.NewLine}";
+            }
+
+            return null;
+        }
         
     }
 }

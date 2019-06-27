@@ -17,7 +17,6 @@ namespace Spi.Hosts
         /// <returns>a 'weight'.async > 1 implies this can handle the host, <=0 implies if can't.!-- The higher the 'weight' the better the match</returns>
          Task<int> CanHandle(string url);
 
-
         /// <summary>
         /// Prompt the user for new credentials, when we know nothing
         /// </summary>
@@ -30,5 +29,18 @@ namespace Spi.Hosts
         /// <param name="knownCredentials"></param>
         /// <returns></returns>
         Task<ICredentials> PromptCli(ICredentials knownCredentials);
+
+        /// <summary>
+        /// Prompt the user for new credentials, when we know nothing
+        /// </summary>
+        /// <returns></returns>
+        Task<ICredentials> PromptGui();
+
+        /// <summary>
+        /// Prompt the user for new credentials, when we know something
+        /// </summary>
+        /// <param name="knownCredentials"></param>
+        /// <returns></returns>
+        Task<ICredentials> PromptGui(ICredentials knownCredentials);
     }
 }

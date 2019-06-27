@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Itofinity.Refit.Cli.Utils.Options;
+using Itofinity.Refit.Cli.Utils;
 using System.Threading.Tasks;
 using Spi.Credentials;
 using Manager.Model;
@@ -19,14 +20,18 @@ namespace Manager.Commands
     [Export(typeof(ICommandDefinition))]
     public class Store : AbstractCommandDefinition
     {
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<Store>();
+
         public override string Name { get; } = nameof(Store);
 
-        public string Description => $"This is the description for {Name}.";
+        public string Description => @"Store the credential, if applicable to the helper.
+        see https://mirrors.edge.kernel.org/pub/software/scm/git/docs/technical/api-credentials.html";
 
         private IEnumerable<IOptionDefinition> _localOptions = new List<IOptionDefinition>() { 
             new Manager.Options.Command.Host(), 
             new Manager.Options.Command.User(), 
-            new Manager.Options.Command.Protocol() };
+            new Manager.Options.Command.Protocol(),
+            new Manager.Options.Command.Password()  };
 
         #region api
         private ICredentialStore _credentialStore = new Common.FileSystem.FileSystemCredentialStore(new Common.Gcmw.GcmwCredentialKeyFactory());
@@ -69,10 +74,10 @@ namespace Manager.Commands
             var result = await _credentialStore.Write(credentials);
             if (result)
             {
-                return "true";
+                Logger.LogError($"Failed to save {credentials}");
             }
 
-            return "false";
+            return string.Empty;
         }
     }
 }

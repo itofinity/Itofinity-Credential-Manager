@@ -60,7 +60,7 @@
             "console": "internalConsole"
         },
         {
-            "name": "Manager Delete --host --protocol --user",
+            "name": "Manager Delete --host --protocol --user --verbosity --log",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -69,7 +69,8 @@
                 "delete",
                 "--host=example.com",
                 "--user=dave",
-                "--protocol=https"
+                "--protocol=https",
+                "--verbosity=Debug"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

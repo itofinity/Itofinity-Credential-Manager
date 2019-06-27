@@ -5,7 +5,7 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet build /property:GenerateFullPaths=true",
+            "command": "dotnet build /property:GenerateFullPaths=true -c ${input:configuration}",
             "type": "shell",
             "group": {
                 "kind": "build",
@@ -42,7 +42,7 @@
         },
         {
             "label": "publish",
-            "command": "dotnet publish -r ${input:runtime} -f ${input:framework} /property:GenerateFullPaths=true",
+            "command": "dotnet publish -r ${input:runtime} -f ${input:framework} -c ${input:configuration} /property:GenerateFullPaths=true",
             "type": "shell",
             "problemMatcher": "$msCompile"
         }
@@ -70,6 +70,12 @@
             "id": "project",
             "description": "target project",
             "default": "unknown",
+            "type": "promptString"
+        },
+        {
+            "id": "configuration",
+            "description": "build configuration",
+            "default": "debug",
             "type": "promptString"
         },
     ]

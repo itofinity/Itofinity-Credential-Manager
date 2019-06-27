@@ -26,13 +26,20 @@ namespace Manager.Commands
 
         public override string Name { get; } = nameof(Get);
 
-        public string Description => $"This is the description for {Name}.";
+        public string Description => @"Return a matching credential, if any exists.
+        see https://mirrors.edge.kernel.org/pub/software/scm/git/docs/technical/api-credentials.html";
 
         #region api
         private ICredentialStore _credentialStore = new Common.FileSystem.FileSystemCredentialStore(new Common.Gcmw.GcmwCredentialKeyFactory());
         private ICredentialKeyFactory _credentialKeyFactory = new GcmwCredentialKeyFactory();
         private IEnumerable<IHost> _hosts = new List<IHost>() { new Host.Generic.GenericHost() };
         #endregion
+
+        private IEnumerable<IOptionDefinition> _localOptions = new List<IOptionDefinition>() {
+            new Manager.Options.Command.Host(),
+            new Manager.Options.Command.User(),
+            new Manager.Options.Command.Protocol(),
+            new Manager.Options.Command.Path() };
 
         public override Action<CommandLineApplication> GetConfiguration(CommandLineApplication app)
         {
@@ -41,71 +48,22 @@ namespace Manager.Commands
                 command.Description = Description;
 
                 SetHelpOption(command);
+
                 SetGlobalOptions(command);
 
-                var commandOptions = new List<IOptionDefinition>() {new Manager.Options.Command.Host(), new Manager.Options.Command.User(), new Manager.Options.Command.Protocol()};
-                commandOptions.ForEach(co => SetOption(command, co));
-//                var hostOption = SetOption(command, new Host());
-  //              var userOption = SetOption(command, new User());
-    //            var protocolOption = SetOption(command, new Protocol());
-                
+                SetLocalOptions(command, _localOptions);
 
                 command.OnExecute(() =>
                 {
+                    Logger.LogDebug($"Running {Name}");
+
                     return RunRequest(command,
                         app,
                         () =>
                         {
                             ConfigureLogging(command.Options.First(o => o.ShortName.Equals("l")), command.Options.First(o => o.ShortName.Equals("v")));
-                            /* if(command.Options.Any(o => o.HasValue()))
-                            {
-                                return $"you called {Name} with {hostOption.Value()}/{userOption.Value()}/{protocolOption.Value()}";
-                            }
 
-                            Console.WriteLine("enter some stuff");*/
-
-
-
-
-                            var options = new Spi.Input.Options();
-                            // get env vars
-                            // - get all found
-                            GetEnvironmentVariableOptions().ToList().ForEach(x => options[x.Key] = x.Value);
-                            // get command line args
-                            // - get all found + overwrite/override env var
-                            var dave = command.Options.Distinct().ToDictionary(o => o.LongName, o => o.Values).ToList();
-                            dave.ForEach(x => options[x.Key] = x.Value);
-                            // do we have all we need?
-                            if(!options.Any(op => 
-                                op.Value.Any() && commandOptions.Any(co => co.Name.Equals(op.Key, StringComparison.InvariantCultureIgnoreCase))))
-                            {
-                                // - if not 
-                                //  - get interactive values
-                                var operationArguments = new Manager.Model.OperationArguments();
-
-                                // Parse the operations arguments from stdin (this is how git sends commands)
-                                // see: https://www.kernel.org/pub/software/scm/git/docs/technical/api-credentials.html
-                                // see: https://www.kernel.org/pub/software/scm/git/docs/git-credential.html
-                                using (var stdin = Console.OpenStandardInput())
-                                {
-                                    Task.Run(async () => await operationArguments.ReadInput(stdin)).Wait();
-                                }
-
-                                operationArguments.Options.ToList().ForEach(x => options[x.Key] = x.Value);
-                            }
-
-                            foreach(var option in options) 
-                            {
-                                Logger.LogDebug($"{option.Key}=[");
-                                foreach(var value in option.Value) 
-                                {
-                                    Logger.LogDebug($"{value},");
-                                }
-                                Logger.LogDebug($"]");
-                            }
-
-
-                            return Task.Run(async () => await Run(options)).Result;
+                            return Task.Run(async () => await Run(GetRuntimeOptions(command, _localOptions))).Result;
                         }
                         );
                 });
@@ -116,31 +74,38 @@ namespace Manager.Commands
         {
             // get host
             var host = _hosts
-                .Select(h => new { 
-                    Handler = h, 
+                .Select(h => new
+                {
+                    Handler = h,
                     Weight = h.CanHandle(
                         options.ValueOrDefault(Manager.Options.Command.Host.CanonicalName)
                         ).Result
-                    }
+                }
                 )
                 .OrderBy(a => a.Weight).Where(a => a.Weight >= 1)
                 .FirstOrDefault().Handler;
             //read from credential store
             var foundCredentials = await _credentialStore.Read(await _credentialKeyFactory.GenerateKey(options));
-            if(foundCredentials != null)
+            if (foundCredentials != null)
             {
                 return foundCredentials.GetResponse();
             }
 
-            // TODO decide on GUI or not GUI
-            foundCredentials = await host.PromptCli();
-            return foundCredentials.GetResponse();
-        }
-
-        private string GetOptionValue(Dictionary<string, List<string>> options, string optionName)
-        {
-            var values = options[optionName];
-            return values.FirstOrDefault();
+            if(!IsInteractive(options))
+            {
+                return null;
+            }
+            
+            if(UseModalPrompt(options))
+            {
+                foundCredentials = await host.PromptGui();
+                return foundCredentials.GetResponse();
+            }
+            else
+            {
+                foundCredentials = await host.PromptCli();
+                return foundCredentials.GetResponse();
+            }
         }
     }
 }

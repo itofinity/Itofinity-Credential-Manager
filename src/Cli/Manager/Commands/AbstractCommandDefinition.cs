@@ -134,6 +134,7 @@ namespace Manager.Commands
             {
                 Logger.LogError("oops!", ex);
                 Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
             }
 
             return 0;
@@ -160,6 +161,8 @@ namespace Manager.Commands
             {
                 // no file specified by a verbosity level so log to console
                 ApplicationLogging.LoggerFactory.AddConsole(true);
+                Logger.LogError("help!");
+                Console.WriteLine("help!!");
             }
         }
 
@@ -240,6 +243,23 @@ namespace Manager.Commands
             return null;
         }
 
+        protected bool IsInteractive(Spi.Input.Options options)
+        {
+            var val = GetValue(new Manager.Options.Command.Interactive().Aliases.ToList(), options);
+            return val == null || val.Equals("Always", StringComparison.InvariantCultureIgnoreCase) || val.Equals("Auto", StringComparison.InvariantCultureIgnoreCase);
+        }
+        protected bool UseModalPrompt(Spi.Input.Options options)
+        {
+            var val = GetValue(new Manager.Options.Command.ModalPrompt().Aliases.ToList(), options);
+            return val == null || val.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
 
+        protected string GetValue(List<string> aliases, Spi.Input.Options options)
+        {
+            return aliases
+                .Select(a => options.ValueOrDefault(a))
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .FirstOrDefault();
+        }
     }
 }

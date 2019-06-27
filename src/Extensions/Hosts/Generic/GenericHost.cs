@@ -16,6 +16,18 @@ namespace Host.Generic
 
         }
 
+        /// <inheritdoc/>
+        public async Task<ICredentials> PromptGui()
+        {
+            return await PromptGui(new Credentials());
+        }
+
+        /// <inheritdoc/>
+        public async Task<ICredentials> PromptGui(ICredentials knownCredentials)
+        {
+            // do nothing rely on Git to prompt
+            return await Task.FromResult(new Credentials());
+        }
 
         /// <inheritdoc/>
         public async Task<ICredentials> PromptCli()
@@ -25,6 +37,12 @@ namespace Host.Generic
 
         /// <inheritdoc/>
         public async Task<ICredentials> PromptCli(ICredentials knownCredentials)
+        {
+            // do nothing rely on Git to prompt
+            return await Task.FromResult(new Credentials());
+        }
+
+        public async Task<ICredentials> DoNothing(ICredentials knownCredentials)
         {
             Console.WriteLine("Password Masking Console Application");
             Console.WriteLine("------------------------------------");

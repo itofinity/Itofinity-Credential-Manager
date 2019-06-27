@@ -17,9 +17,9 @@
         1. GCM_TRACE
         1. GCM_WRITELOG
     1. Correctly supports the following [Commands](https://github.com/microsoft/Git-Credential-Manager-for-Windows/blob/d8b3b320c253cea8594fcc3f3f57d76b0abc1d79/Docs/CredentialManager.md#get--store--erase--fill--approve--reject)
-        1. GET
-        2. STORE
-        3. ERASE
+        1. GET [/]
+        2. STORE [/]
+        3. ERASE [/]
     1. By default supports a GUI for Basic Credential input
         1. username
         2. password (masked)
