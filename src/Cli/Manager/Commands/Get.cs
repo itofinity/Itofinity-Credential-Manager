@@ -42,6 +42,7 @@ namespace Manager.Commands
 
                 SetHelpOption(command);
                 SetGlobalOptions(command);
+
                 var commandOptions = new List<IOptionDefinition>() {new Manager.Options.Command.Host(), new Manager.Options.Command.User(), new Manager.Options.Command.Protocol()};
                 commandOptions.ForEach(co => SetOption(command, co));
 //                var hostOption = SetOption(command, new Host());
@@ -66,7 +67,7 @@ namespace Manager.Commands
 
 
 
-                            var options = new Dictionary<string, List<string>>();
+                            var options = new Spi.Input.Options();
                             // get env vars
                             // - get all found
                             GetEnvironmentVariableOptions().ToList().ForEach(x => options[x.Key] = x.Value);
@@ -104,23 +105,21 @@ namespace Manager.Commands
                             }
 
 
-                            var credentials = Task.Run(async () => await Run(options)).Result;
-
-                            return credentials.GetResponse();
+                            return Task.Run(async () => await Run(options)).Result;
                         }
                         );
                 });
             };
         }
 
-        public async Task<ICredentials> Run(Dictionary<string, List<string>> options)
+        public override async Task<string> Run(Spi.Input.Options options)
         {
             // get host
             var host = _hosts
                 .Select(h => new { 
                     Handler = h, 
                     Weight = h.CanHandle(
-                        GetOptionValue(options, Manager.Options.Command.Host.CanonicalName)
+                        options.ValueOrDefault(Manager.Options.Command.Host.CanonicalName)
                         ).Result
                     }
                 )
@@ -130,12 +129,12 @@ namespace Manager.Commands
             var foundCredentials = await _credentialStore.Read(await _credentialKeyFactory.GenerateKey(options));
             if(foundCredentials != null)
             {
-                return foundCredentials;
+                return foundCredentials.GetResponse();
             }
 
             // TODO decide on GUI or not GUI
             foundCredentials = await host.PromptCli();
-            return foundCredentials;
+            return foundCredentials.GetResponse();
         }
 
         private string GetOptionValue(Dictionary<string, List<string>> options, string optionName)

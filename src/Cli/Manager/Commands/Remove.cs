@@ -10,32 +10,10 @@ using System.Linq;
 namespace Manager.Commands
 {
     [Export(typeof(ICommandDefinition))]
-    public class Remove : Erase
+    public class Remove : Delete
     {
         public override string Name { get; } = nameof(Remove);
 
         public string Description => $"This is the description for {Name}.";
-
-        public override Action<CommandLineApplication> GetConfiguration(CommandLineApplication app)
-        {
-            return (command) =>
-            {
-                command.Description = Description;
-
-                SetHelpOption(command);
-                //SetApiTokenOption(command);
-
-                command.OnExecute(() =>
-                {
-                    return RunRequest(command,
-                        app,
-                        () =>
-                        {
-                            return $"you called {Name}";
-                        }
-                        );
-                });
-            };
-        }
     }
 }

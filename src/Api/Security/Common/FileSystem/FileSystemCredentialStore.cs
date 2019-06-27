@@ -10,7 +10,12 @@ namespace Common.FileSystem
     public class FileSystemCredentialStore : ICredentialStore
     {
         private ICredentialKeyFactory _credentialKeyFactory;
-        private string _file = "FileSystemCredentialStore.sjon";
+        private JsonSerializerSettings _jsonSettings = new JsonSerializerSettings()
+                                                        {
+                                                            TypeNameHandling = TypeNameHandling.All,
+                                                            Formatting = Formatting.Indented
+                                                        };
+        private string _file = "FileSystemCredentialStore.json";
 
 
         public FileSystemCredentialStore(ICredentialKeyFactory credentialKeyFactory)
@@ -29,7 +34,13 @@ namespace Common.FileSystem
         {
             var credentials = ReadAll();
             var key2 = await key.Key;
-            return credentials.Remove(key2);
+            var result = credentials.Remove(key2);
+            if(result)
+            {
+                WriteAll(credentials);
+            }
+            
+            return result;
         }
 
 
@@ -59,7 +70,7 @@ namespace Common.FileSystem
                 File.WriteAllText(_file, string.Empty);
             }
             var json = File.ReadAllText(_file);
-            var items = JsonConvert.DeserializeObject<Dictionary<string, ICredentials>>(json);
+            var items = JsonConvert.DeserializeObject<Dictionary<string, ICredentials>>(json, _jsonSettings);
             if(items == null)
             {
                 items = new Dictionary<string, ICredentials>();
@@ -69,7 +80,8 @@ namespace Common.FileSystem
 
         private void WriteAll(Dictionary<string, ICredentials> credentials)
         {
-            var json = JsonConvert.SerializeObject(credentials, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(credentials, _jsonSettings);
+
             File.WriteAllText(_file, json);
         }
     }

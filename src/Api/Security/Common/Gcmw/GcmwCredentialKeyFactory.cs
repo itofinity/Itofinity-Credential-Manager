@@ -20,30 +20,17 @@ namespace Common.Gcmw
             return Task.FromResult(new GcmwCredentialKey(uri.Uri) as ICredentialKey);
         }
 
-        public Task<ICredentialKey> GenerateKey(Dictionary<string, List<string>> options)
+        public Task<ICredentialKey> GenerateKey(Spi.Input.Options options)
         {
             // TODO magic boo
             var uri = new UriBuilder() {
-                UserName = GetValue(options, "user"),
-                Host = GetValue(options, "host"),
-                Scheme = GetValue(options, "protocol"),
-                Path = GetValue(options, "path")
+                UserName = options.ValueOrDefault("user"),
+                Host = options.ValueOrDefault("host"),
+                Scheme = options.ValueOrDefault("protocol"),
+                Path = options.ValueOrDefault("path")
             };
 
             return Task.FromResult(new GcmwCredentialKey(uri.Uri) as ICredentialKey);
-        }
-
-        public string GetValue(Dictionary<string, List<string>> options, string key, int index = 0)
-        {
-            if( options.TryGetValue(key, out List<string> values))
-            {
-                 if(index <= values.Count - 1)
-                {
-                    return values[index];
-                }
-            }
-
-            return null;
         }
     }
 }

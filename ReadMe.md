@@ -19,7 +19,7 @@ I still believe there is some merit in that approach, evolution over revolution,
 1. [GCMW](https://github.com/microsoft/git-credential-manager-for-windows) is primarily a console application that can spin up GUI components as required.
     * A single [GCMW](https://github.com/microsoft/git-credential-manager-for-windows) flow, e.g. GET, can spawn 1 or more windows/dialogs, one at a time but essentially as independent windows.
     * [Avalonia](https://github.com/avaloniaui/avalonia) to my understanding doesn't allow this, you instantiate a single Avalonia _Application_ and windows chain from one to another. 
-    * I could not reconcile these differences within the existing [Avalonia](https://github.com/avaloniaui/avalonia) architecture
+    * I could not reconcile these differences within the existing [GCMW](https://github.com/microsoft/git-credential-manager-for-windows) architecture
 1. [GCMW](https://github.com/microsoft/git-credential-manager-for-windows) is a well controlled application, as part of the [Git for Windows](https://github.com/git-for-windows/git) distribution. As such its code is, quite rightly, well controlled. The code relies on hardcoding support of hosts such as [Bitbucket.org](https://bitbucket.org), [Github.com](https://github.com) and [Azure Devops](https://devops.azure.com) (There is a performance reason for this)
     * This makes it difficult to add new, especially smaller, hosts
     * porting to Dotnet Core is complex.

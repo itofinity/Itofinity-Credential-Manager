@@ -6,6 +6,6 @@ namespace Spi.Credentials
     public interface ICredentialKeyFactory
     {
          Task<ICredentialKey> GenerateKey(ICredentials credentials);
-         Task<ICredentialKey> GenerateKey(Dictionary<string, List<string>> options);
+         Task<ICredentialKey> GenerateKey(Spi.Input.Options options);
     }
 }

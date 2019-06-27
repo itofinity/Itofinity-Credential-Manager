@@ -60,6 +60,22 @@
             "console": "internalConsole"
         },
         {
+            "name": "Manager Delete --host --protocol --user",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Cli/Manager/bin/Debug/netcoreapp2.1/Manager.dll",
+            "args": [
+                "delete",
+                "--host=example.com",
+                "--user=dave",
+                "--protocol=https"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
             "name": "Manager Deploy",
             "type": "coreclr",
             "request": "launch",
@@ -170,12 +186,29 @@
             "console": "internalConsole"
         },
         {
+            "name": "Manager Store --host --protocol --user --password",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Cli/Manager/bin/Debug/netcoreapp2.1/Manager.dll",
+            "args": ["store",
+                "--host=example.com",
+                "--user=dave",
+                "--protocol=https",
+                "--password=12345"],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
             "name": "Manager Store",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Cli/Manager/bin/Debug/netcoreapp2.1/Manager.dll",
-            "args": ["store"],
+            "args": [
+                "store"
+            ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole"

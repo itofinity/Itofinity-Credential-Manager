@@ -10,14 +10,14 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Itofinity.Refit.Cli.Utils.Options.Global;
+using System.Threading.Tasks;
+using System.Text;
 
 namespace Manager.Commands
 {
     public abstract class AbstractCommandDefinition : ICommandDefinition
     {
         private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<AbstractCommandDefinition>();
-//        [Import]
-//        public IClientFactory<ApiClient> ClientFactory { get; private set; }
 
         private static IEnumerable<IOptionDefinition> _globalOptionDefinitions = new List<IOptionDefinition>()
         {
@@ -26,10 +26,6 @@ namespace Manager.Commands
         };
         public static string _namespaceRoot = typeof(AbstractCommandDefinition).Namespace;
         public abstract string Name { get; }
-
-  //      public IOptionDefinition ApiTokenOptionDefinition => new Token();
-
-  //      public CommandOption ApiTokenOption { get; private set; }
 
         protected void SetHelpOption(CommandLineApplication command)
         {
@@ -41,12 +37,56 @@ namespace Manager.Commands
             _globalOptionDefinitions.ToList().ForEach(o => command.Option(o.Template, o.Description, o.OptionType));
         }
 
-//        protected void SetApiTokenOption(CommandLineApplication command)
-//        {
-//            ApiTokenOption = command.Option(ApiTokenOptionDefinition.Template,
-//                ApiTokenOptionDefinition.Description,
-//                ApiTokenOptionDefinition.OptionType);
-//        }
+        protected void SetLocalOptions(CommandLineApplication command, IEnumerable<IOptionDefinition> options)
+        {
+            options.ToList().ForEach(co => SetOption(command, co));
+        }
+
+        protected Spi.Input.Options GetRuntimeOptions(CommandLineApplication command, IEnumerable<IOptionDefinition> commandOptions)
+        {
+            var options = new Spi.Input.Options();
+            // get env vars
+            // - get all found
+            GetEnvironmentVariableOptions().ToList().ForEach(x => options[x.Key] = x.Value);
+            // get command line args
+            // - get all found + overwrite/override env var
+            var dave = command.Options.Distinct().ToDictionary(o => o.LongName, o => o.Values).ToList();
+            dave.ForEach(x => options[x.Key] = x.Value);
+            // do we have all we need?
+            if (!options.Any(op =>
+                 op.Value.Any() && commandOptions.Any(co => co.Name.Equals(op.Key, StringComparison.InvariantCultureIgnoreCase))))
+            {
+                // - if not 
+                //  - get interactive values
+                var operationArguments = new Manager.Model.OperationArguments();
+
+                // Parse the operations arguments from stdin (this is how git sends commands)
+                // see: https://www.kernel.org/pub/software/scm/git/docs/technical/api-credentials.html
+                // see: https://www.kernel.org/pub/software/scm/git/docs/git-credential.html
+                using (var stdin = Console.OpenStandardInput())
+                {
+                    Task.Run(async () => await operationArguments.ReadInput(stdin)).Wait();
+                }
+
+                operationArguments.Options.ToList().ForEach(x => options[x.Key] = x.Value);
+            }
+
+            foreach (var option in options)
+            {
+                StringBuilder buffer = new StringBuilder();
+                buffer.Append($"{option.Key}=[");
+                foreach (var value in option.Value)
+                {
+                    buffer.Append($"{value},");
+                }
+                buffer.Append($"]");
+                buffer.Append(System.Environment.NewLine);
+
+                Logger.LogDebug(buffer.ToString());
+            }
+
+            return options;
+        }
 
         protected CommandOption SetOption(CommandLineApplication command, IOptionDefinition optionDefinition)
         {
@@ -99,6 +139,10 @@ namespace Manager.Commands
             return 0;
         }
 
+        protected static void ConfigureLogging(CommandLineApplication command)
+        {
+            ConfigureLogging(command.Options.First(o => o.ShortName.Equals("l")), command.Options.First(o => o.ShortName.Equals("v")));
+        }
         protected static void ConfigureLogging(CommandOption logLocationOption, CommandOption logVerbosityOption)
         {
             var logLevel = NLog.LogLevel.Off;
@@ -169,14 +213,33 @@ namespace Manager.Commands
             var options = new Dictionary<string, List<string>>();
 
             var rawEnvVars = System.Environment.GetEnvironmentVariables();
-            var envvars = rawEnvVars.Keys.Cast<object>().ToDictionary(k=> k.ToString(), v=> rawEnvVars[v]);
+            var envvars = rawEnvVars.Keys.Cast<object>().ToDictionary(k => k.ToString(), v => rawEnvVars[v]);
 
-            if(!envvars.Any(ev => ev.Key.StartsWith("icm", StringComparison.InvariantCultureIgnoreCase)))
+            if (!envvars.Any(ev => ev.Key.StartsWith("icm", StringComparison.InvariantCultureIgnoreCase)))
             {
                 return options;
             };
 
             return options;
         }
+
+        public virtual Task<string> Run(Spi.Input.Options options)
+        {
+            Console.WriteLine($"Called [{Name}] with options:");
+
+            foreach (var option in options)
+            {
+                Console.Write($"{option.Key}=[");
+                foreach (var value in option.Value)
+                {
+                    Console.Write($"{value},");
+                }
+                Console.WriteLine($"]");
+            }
+
+            return null;
+        }
+
+
     }
 }

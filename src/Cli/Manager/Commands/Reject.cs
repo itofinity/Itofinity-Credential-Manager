@@ -10,7 +10,7 @@ using System.Linq;
 namespace Manager.Commands
 {
     [Export(typeof(ICommandDefinition))]
-    public class Reject : Erase
+    public class Reject : Delete
     {
         public override string Name { get; } = nameof(Reject);
 
