@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Host.Generic.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Host.Generic.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Manager"
+        Width="500"
+        Height="600"
+        >
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+<StackPanel>
+    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+    <TextBox Name="username" Watermark="Username" Text="{Binding Username, Mode=TwoWay}"/>
+    <TextBox Name="password" PasswordChar="#" Watermark="Password" Text="{Binding Secret, Mode=TwoWay}"/>
+    <Button Width="160" Command="{Binding LoginCommand}">Login</Button>
+    <Button Width="160" Command="{Binding CancelCommand}">Cancel</Button>
+</StackPanel>
+</Window>

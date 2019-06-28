@@ -3,10 +3,13 @@ using System.Threading.Tasks;
 using Spi.Hosts;
 using Spi.Credentials;
 using Security.Common;
+using Avalonia;
+using Host.Generic.Views;
+using Host.Generic.ViewModels;
 
 namespace Host.Generic
 {
-    public class GenericHost : IHost
+    public class GenericHost : Spi.Gui.Hosts.IHost
     {
         /// <inheritdoc/>
         public async Task<int> CanHandle(string url)
@@ -17,16 +20,36 @@ namespace Host.Generic
         }
 
         /// <inheritdoc/>
-        public async Task<ICredentials> PromptGui()
+        public ICredentials PromptGui(Application app)
         {
-            return await PromptGui(new Credentials());
+            return PromptGui(app, new Credentials());
         }
 
+        private Avalonia.Controls.Window _window;
         /// <inheritdoc/>
-        public async Task<ICredentials> PromptGui(ICredentials knownCredentials)
+        public ICredentials PromptGui(Application app, ICredentials knownCredentials)
         {
+            var data = new MainWindowViewModel();
+            data.CredentialsCollected += CredentialsCollected;
+            _window = new MainWindow
+            {
+                DataContext = data,
+            };
+
+            app.Run(_window);
+
+            if(!data.Success)
+            {
+                return knownCredentials;
+            }
+            
             // do nothing rely on Git to prompt
-            return await Task.FromResult(new Credentials());
+            return new Credentials(data.Username, knownCredentials.Protocol, knownCredentials.Host, knownCredentials.Path, data.Secret);
+        }
+
+        private void CredentialsCollected(object sender, EventArgs e)
+        {
+            _window.Close();
         }
 
         /// <inheritdoc/>

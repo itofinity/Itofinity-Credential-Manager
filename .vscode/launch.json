@@ -126,7 +126,10 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Cli/Manager/bin/Debug/netcoreapp2.1/Manager.dll",
-            "args": ["get","--host=example.com", "--user=dave", "--protocol=https"],
+            "args": ["get",
+                "--host=example.com", 
+                "--user=daveX", 
+                "--protocol=https"],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole"

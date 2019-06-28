@@ -60,7 +60,7 @@ namespace Manager.Commands
                         {
                             ConfigureLogging(command);
 
-                            var saved = Task.Run(async () => await Run(GetRuntimeOptions(command, _localOptions))).Result;
+                            var saved = Run(GetRuntimeOptions(command, _localOptions));
 
                             return saved.ToString();
                         }
@@ -69,13 +69,13 @@ namespace Manager.Commands
             };
         }
 
-        public override async Task<string> Run(Spi.Input.Options options)
+        public override string Run(Spi.Input.Options options)
         {
             var credentials = new Security.Common.Credentials(options);
 
             Logger.LogDebug($"Attempting to delete {credentials}");
 
-            var result = await _credentialStore.Delete(credentials);
+            var result = Task.Run(() => _credentialStore.Delete(credentials)).Result;
             if (result)
             {
                 return "true";

@@ -226,7 +226,7 @@ namespace Manager.Commands
             return options;
         }
 
-        public virtual Task<string> Run(Spi.Input.Options options)
+        public virtual string Run(Spi.Input.Options options)
         {
             Console.WriteLine($"Called [{Name}] with options:");
 

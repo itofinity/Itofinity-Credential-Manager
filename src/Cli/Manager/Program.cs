@@ -33,7 +33,7 @@ namespace Manager
 
         // Your application's entry point. Here you can initialize your MVVM framework, DI
         // container, etc.
-        private static void AppMain(Application app, string[] args)
+        public static void AppMain(Application app, string[] args)
         {
             var window = new MainWindow
             {

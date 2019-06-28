@@ -59,7 +59,7 @@ namespace Manager.Commands
                         {
                             ConfigureLogging(command);
 
-                            var saved = Task.Run(async () => await Run(GetRuntimeOptions(command, _localOptions))).Result;
+                            var saved = Run(GetRuntimeOptions(command, _localOptions));
 
                             return saved.ToString();
                         }
@@ -68,10 +68,10 @@ namespace Manager.Commands
             };
         }
 
-        public override async Task<string> Run(Spi.Input.Options options)
+        public override string Run(Spi.Input.Options options)
         {
             var credentials = new Security.Common.Credentials(options);
-            var result = await _credentialStore.Write(credentials);
+            var result = Task.Run( () => _credentialStore.Write(credentials)).Result;
             if (result)
             {
                 Logger.LogError($"Failed to save {credentials}");

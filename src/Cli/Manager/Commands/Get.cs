@@ -63,14 +63,14 @@ namespace Manager.Commands
                         {
                             ConfigureLogging(command.Options.First(o => o.ShortName.Equals("l")), command.Options.First(o => o.ShortName.Equals("v")));
 
-                            return Task.Run(async () => await Run(GetRuntimeOptions(command, _localOptions))).Result;
+                            return Run(GetRuntimeOptions(command, _localOptions));
                         }
                         );
                 });
             };
         }
 
-        public override async Task<string> Run(Spi.Input.Options options)
+        public override string Run(Spi.Input.Options options)
         {
             // get host
             var host = _hosts
@@ -85,7 +85,7 @@ namespace Manager.Commands
                 .OrderBy(a => a.Weight).Where(a => a.Weight >= 1)
                 .FirstOrDefault().Handler;
             //read from credential store
-            var foundCredentials = await _credentialStore.Read(await _credentialKeyFactory.GenerateKey(options));
+            var foundCredentials = Task.Run(() => _credentialStore.Read(_credentialKeyFactory.GenerateKey(options).Result)).Result;
             if (foundCredentials != null)
             {
                 return foundCredentials.GetResponse();
@@ -95,15 +95,20 @@ namespace Manager.Commands
             {
                 return null;
             }
-            
-            if(UseModalPrompt(options))
+            var guiHost = host as Spi.Gui.Hosts.IHost;
+            if(UseModalPrompt(options) && guiHost != null)
             {
-                foundCredentials = await host.PromptGui();
+                Program.BuildAvaloniaApp().Start((app, args) => 
+                    {
+                        foundCredentials = guiHost.PromptGui(app);
+                    }, 
+                System.Environment.GetCommandLineArgs());
+                
                 return foundCredentials.GetResponse();
             }
             else
             {
-                foundCredentials = await host.PromptCli();
+                foundCredentials = Task.Run(() => host.PromptCli()).Result;
                 return foundCredentials.GetResponse();
             }
         }
